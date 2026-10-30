@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Smart Disease Risk Prediction System{% endblock %}</title>
+  <meta name="description"
+    content="Machine learning based disease risk classification using patient health measurements. Compares Logistic Regression, Decision Tree, Random Forest, SVM, and Ensemble models.">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+  <!-- Navigation -->
+  <header class="navbar">
+    <div class="nav-container container">
+      <a href="{{ url_for('index') }}" class="brand-link">
+        <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+        </svg>
+        <span class="brand-text">Disease Risk</span>
+      </a>
+
+      <nav>
+        <ul class="nav-menu">
+          <li><a href="{{ url_for('index') }}"
+              class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">Home</a></li>
+          <li><a href="{{ url_for('assessment') }}"
+              class="nav-link {% if request.endpoint in ('assessment', 'predict') %}active{% endif %}">Risk
+              Assessment</a></li>
+          <li><a href="{{ url_for('models_comparison') }}"
+              class="nav-link {% if request.endpoint == 'models_comparison' %}active{% endif %}">Model Comparison</a>
+          </li>
+          <li><a href="{{ url_for('about') }}"
+              class="nav-link {% if request.endpoint == 'about' %}active{% endif %}">About</a></li>
+          <li><a href="{{ url_for('assessment') }}" class="btn btn-sm btn-primary">New Assessment</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Flash Messages -->
+  <div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+  </div>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div>
+        <p class="footer-name">Smart Disease Risk Prediction System</p>
+        <p class="footer-sub">Built with Flask &bull; scikit-learn &bull; Python</p>
+      </div>
+      <ul class="footer-links">
+        <li><a href="{{ url_for('index') }}">Home</a></li>
+        <li><a href="{{ url_for('assessment') }}">Assessment</a></li>
+        <li><a href="{{ url_for('models_comparison') }}">Models</a></li>
+        <li><a href="{{ url_for('about') }}">About</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+
+</html>

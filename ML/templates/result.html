@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Prediction Result | Smart Disease Risk Prediction System{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 960px;">
+
+  <!-- Risk Classification Banner -->
+  <div class="result-banner {% if results.is_high_risk %}result-high{% else %}result-low{% endif %}">
+    <p class="result-label">Risk Classification</p>
+    <h1 class="result-title">{{ results.risk_label }}</h1>
+    <p class="result-sub">{{ results.interpretation }}</p>
+  </div>
+
+  <!-- Probability -->
+  <div class="prob-card">
+    <div class="prob-header">
+      <div>
+        <h3 class="prob-title">Model-Estimated High-Risk Probability</h3>
+        <p class="prob-sub">Based on the Soft Voting Ensemble output.</p>
+      </div>
+      <div class="prob-pct {% if results.is_high_risk %}prob-high{% else %}prob-low{% endif %}">
+        {{ results.high_risk_prob }}%
+      </div>
+    </div>
+    <div class="prob-bar-track">
+      <div class="prob-bar-fill {% if results.is_high_risk %}fill-high{% else %}fill-low{% endif %}"
+           style="width: {{ results.high_risk_prob }}%;"></div>
+    </div>
+    <div class="prob-bar-labels">
+      <span>0%</span>
+      <span>50% (Decision boundary)</span>
+      <span>100%</span>
+    </div>
+  </div>
+
+  <!-- Model Agreement -->
+  <div class="card mb-2">
+    <p class="consensus-text">
+      {% if results.consensus_type == 'disagreement' %}
+        <strong>Model predictions differ for this assessment.</strong>
+      {% else %}
+        <strong>All configured models produced the same classification.</strong>
+      {% endif %}
+      {{ results.consensus_text }}
+    </p>
+  </div>
+
+  <!-- Individual Model Results -->
+  <div class="mb-2">
+    <h3 class="section-heading">Individual Model Results</h3>
+    <div class="model-result-grid">
+      {% for m in results.individual_predictions %}
+      <div class="model-result-card">
+        <div class="model-result-name">{{ m.model_name }}</div>
+        <div class="model-result-badge {% if m.is_high_risk %}badge-high{% else %}badge-low{% endif %}">
+          {{ m.prediction }}
+        </div>
+        <div class="model-result-prob">
+          <div class="model-prob-row">
+            <span>High Risk:</span>
+            <strong>{{ m.probability }}%</strong>
+          </div>
+          <div class="model-prob-bar">
+            <div class="model-prob-fill {% if m.is_high_risk %}fill-high{% else %}fill-low{% endif %}"
+                 style="width: {{ m.probability }}%;"></div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Risk Factor Summary -->
+  <div class="card mb-2">
+    <h3 class="card-title">Risk Factor Summary</h3>
+    <p class="card-sub">Identified characteristics from the entered values.</p>
+    <div class="risk-factors-list">
+      {% for rf in results.risk_factors %}
+      <div class="risk-factor-item">
+        <div>
+          <strong class="rf-name">{{ rf.factor }}</strong>
+          <p class="rf-detail">{{ rf.detail }}</p>
+        </div>
+        <span class="rf-badge rf-{{ rf.severity }}">
+          {% if rf.severity == 'high' %}High
+          {% elif rf.severity == 'moderate' %}Moderate
+          {% elif rf.severity == 'positive' %}Typical
+          {% else %}Low{% endif %}
+        </span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Submitted Parameters -->
+  <div class="card mb-2">
+    <h3 class="card-title">Submitted Parameters</h3>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Parameter</th>
+            <th>Value</th>
+            <th>Reference Range</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Age</strong></td><td>{{ results.patient_input.age }} years</td><td>1 – 120</td></tr>
+          <tr><td><strong>Gender</strong></td><td>{{ results.patient_input.gender }}</td><td>—</td></tr>
+          <tr><td><strong>Systolic Blood Pressure (Vital)</strong></td><td>{{ results.patient_input.blood_pressure }} mmHg</td><td>Normal: &lt;120</td></tr>
+          <tr><td><strong>Resting Heart Rate</strong></td><td>{{ results.patient_input.heart_rate }} bpm</td><td>60 – 100 bpm</td></tr>
+          <tr><td><strong>Fasting Glucose (Lab Test)</strong></td><td>{{ results.patient_input.glucose }} mg/dL</td><td>Normal: &lt;100</td></tr>
+          <tr><td><strong>Total Cholesterol</strong></td><td>{{ results.patient_input.cholesterol }} mg/dL</td><td>Desirable: &lt;200</td></tr>
+          <tr><td><strong>BMI</strong></td><td>{{ results.patient_input.bmi }} kg/m²</td><td>18.5 – 24.9</td></tr>
+          <tr><td><strong>Smoking Status</strong></td><td>{{ results.patient_input.smoking }}</td><td>—</td></tr>
+          <tr><td><strong>Physical Activity</strong></td><td>{{ results.patient_input.physical_activity }}</td><td>—</td></tr>
+          <tr><td><strong>Family History</strong></td><td>{{ results.patient_input.family_history }}</td><td>—</td></tr>
+          <tr><td><strong>Prior Heart Disease</strong></td><td>{{ results.patient_input.heart_disease }}</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="form-hint" style="margin-top:0.75rem;">
+      The classification is based on the values entered and the patterns learned from the training dataset.
+    </p>
+  </div>
+
+  <!-- Actions -->
+  <div class="result-actions">
+    <a href="{{ url_for('assessment') }}" class="btn btn-primary">New Assessment</a>
+    <a href="{{ url_for('models_comparison') }}" class="btn btn-outline">View Model Comparison</a>
+    <button type="button" onclick="window.print()" class="btn btn-ghost">Print Summary</button>
+  </div>
+
+</div>
+{% endblock %}

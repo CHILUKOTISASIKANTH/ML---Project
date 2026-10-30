@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Model Comparison | Smart Disease Risk Prediction System{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <div class="page-header">
+    <h1 class="page-title">Model Comparison</h1>
+    <p class="page-sub">Performance of the classification models on the held-out test set (20% stratified split).</p>
+  </div>
+
+  {% if not models_ready %}
+  <div class="alert alert-warning">
+    Trained models not found. Run <code>python src/train_models.py</code> to generate models and evaluation metrics.
+  </div>
+  {% else %}
+
+  <!-- Metrics Table -->
+  <div class="card mb-3">
+    <div class="card-header-row">
+      <h3 class="card-title">Performance Metrics</h3>
+      <p class="card-sub">All values computed on the held-out test set. No metric has been manually set.</p>
+    </div>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Accuracy</th>
+            <th>Precision</th>
+            <th>Recall</th>
+            <th>F1 Score</th>
+            <th>ROC-AUC</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for model_name, data in metrics.items() %}
+          <tr {% if model_name=='Ensemble' %}class="row-highlight" {% endif %}>
+            <td>
+              <strong>{{ model_name }}</strong>
+              {% if model_name == 'Ensemble' %}
+              <span class="badge-tag-sm">Primary</span>
+              {% endif %}
+            </td>
+            <td>{{ "%.4f"|format(data.accuracy) }}</td>
+            <td>{{ "%.4f"|format(data.precision) }}</td>
+            <td>{{ "%.4f"|format(data.recall) }}</td>
+            <td>{{ "%.4f"|format(data.f1_score) }}</td>
+            <td><strong>{{ "%.4f"|format(data.roc_auc) }}</strong></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Metric explanations -->
+    <div class="metric-defs">
+      <div class="metric-def">
+        <strong>Accuracy</strong> — overall proportion of correct predictions on the test set.
+      </div>
+      <div class="metric-def">
+        <strong>Precision</strong> — of all records predicted High Risk, how many actually were.
+      </div>
+      <div class="metric-def">
+        <strong>Recall</strong> — of all actual High Risk records, how many were correctly identified.
+      </div>
+      <div class="metric-def">
+        <strong>F1 Score</strong> — harmonic mean of precision and recall.
+      </div>
+      <div class="metric-def">
+        <strong>ROC-AUC</strong> — ability of the model to rank High Risk records above Low Risk ones.
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts: Comparison + ROC -->
+  <div class="chart-grid mb-3">
+    <div class="chart-box">
+      <h4 class="chart-title">Performance Comparison</h4>
+      <img src="{{ url_for('static', filename='images/model_comparison.png') }}" alt="Model Comparison Chart"
+        class="chart-img">
+      <p class="chart-caption">Accuracy, Precision, Recall, F1 Score, and ROC-AUC for all models.</p>
+    </div>
+    <div class="chart-box">
+      <h4 class="chart-title">ROC Curves</h4>
+      <img src="{{ url_for('static', filename='images/roc_curve.png') }}" alt="ROC Curves" class="chart-img">
+      <p class="chart-caption">True Positive Rate vs. False Positive Rate across classification thresholds.</p>
+    </div>
+  </div>
+
+  <!-- Feature Importance -->
+  <div class="chart-box mb-3" style="text-align:center;">
+    <h4 class="chart-title">Feature Importance (Random Forest)</h4>
+    <p class="chart-caption" style="margin-bottom:1rem;">
+      Relative Gini importance from the Random Forest model. Higher bars indicate features that contributed more to the
+      classification decisions in the training data.
+    </p>
+    <img src="{{ url_for('static', filename='images/feature_importance.png') }}" alt="Feature Importance"
+      class="chart-img" style="max-width:680px;">
+  </div>
+
+  <!-- Confusion Matrices -->
+  <div class="card mb-3">
+    <div class="card-header-row">
+      <h3 class="card-title">Confusion Matrices</h3>
+      <p class="card-sub">Predicted vs. actual classification on the held-out test set.</p>
+    </div>
+    <div class="cm-grid">
+      <div class="cm-item">
+        <h5 class="cm-title">Logistic Regression</h5>
+        <img src="{{ url_for('static', filename='images/confusion_matrix_logistic.png') }}"
+          alt="Confusion Matrix Logistic" class="chart-img">
+      </div>
+      <div class="cm-item">
+        <h5 class="cm-title">Decision Tree</h5>
+        <img src="{{ url_for('static', filename='images/confusion_matrix_decision_tree.png') }}"
+          alt="Confusion Matrix Decision Tree" class="chart-img">
+      </div>
+      <div class="cm-item">
+        <h5 class="cm-title">Random Forest</h5>
+        <img src="{{ url_for('static', filename='images/confusion_matrix_random_forest.png') }}"
+          alt="Confusion Matrix Random Forest" class="chart-img">
+      </div>
+      <div class="cm-item">
+        <h5 class="cm-title">Support Vector Machine</h5>
+        <img src="{{ url_for('static', filename='images/confusion_matrix_svm.png') }}" alt="Confusion Matrix SVM"
+          class="chart-img">
+      </div>
+      <div class="cm-item">
+        <h5 class="cm-title">Soft Voting Ensemble</h5>
+        <img src="{{ url_for('static', filename='images/confusion_matrix_ensemble.png') }}"
+          alt="Confusion Matrix Ensemble" class="chart-img">
+      </div>
+    </div>
+  </div>
+
+  {% endif %}
+
+</div>
+{% endblock %}

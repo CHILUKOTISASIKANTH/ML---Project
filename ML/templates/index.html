@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}Smart Disease Risk Prediction System{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <!-- Hero -->
+  <section class="hero-section">
+    <h1 class="hero-title">Smart Disease Risk Prediction System</h1>
+    <p class="hero-sub">
+      Machine learning based risk classification using patient health measurements and medical history.
+    </p>
+    <div class="hero-actions">
+      <a href="{{ url_for('assessment') }}" class="btn btn-primary btn-lg">Start Assessment</a>
+      <a href="{{ url_for('models_comparison') }}" class="btn btn-outline btn-lg">View Model Results</a>
+    </div>
+
+    <div class="status-indicator">
+      <span class="status-dot {% if models_ready %}status-ok{% else %}status-warn{% endif %}"></span>
+      {% if models_ready %}
+      Models trained and ready.
+      {% else %}
+      Models not trained — run <code>python src/train_models.py</code> first.
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- Stats Overview -->
+  <section class="stats-row">
+    <div class="stat-item">
+      <span class="stat-number">11</span>
+      <span class="stat-label">Health Parameters</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-number">4</span>
+      <span class="stat-label">Classification Models</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-number">1</span>
+      <span class="stat-label">Ensemble Model</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-number">Auto</span>
+      <span class="stat-label">Model Evaluation</span>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="section-block">
+    <div class="section-header">
+      <h2 class="section-title">How It Works</h2>
+      <p class="section-sub">The system follows a straightforward machine learning pipeline.</p>
+    </div>
+
+    <div class="workflow-steps">
+      <div class="workflow-step">
+        <div class="step-num">1</div>
+        <h4 class="step-title">Enter Patient Information</h4>
+        <p class="step-desc">Fill in the 11 health parameters on the Risk Assessment form.</p>
+      </div>
+      <div class="workflow-arrow">→</div>
+      <div class="workflow-step">
+        <div class="step-num">2</div>
+        <h4 class="step-title">Validate and Preprocess</h4>
+        <p class="step-desc">Inputs are validated, then scaled and encoded using the training pipeline.</p>
+      </div>
+      <div class="workflow-arrow">→</div>
+      <div class="workflow-step">
+        <div class="step-num">3</div>
+        <h4 class="step-title">Run Classification Models</h4>
+        <p class="step-desc">All four models produce individual predictions and probabilities.</p>
+      </div>
+      <div class="workflow-arrow">→</div>
+      <div class="workflow-step">
+        <div class="step-num">4</div>
+        <h4 class="step-title">Combine via Ensemble</h4>
+        <p class="step-desc">The Soft Voting Ensemble averages probabilities across all models.</p>
+      </div>
+      <div class="workflow-arrow">→</div>
+      <div class="workflow-step">
+        <div class="step-num">5</div>
+        <h4 class="step-title">Display Risk Classification</h4>
+        <p class="step-desc">Low Risk or High Risk result, with per-model breakdown and risk summary.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Models Overview -->
+  <section class="section-block">
+    <div class="section-header">
+      <h2 class="section-title">Models Used</h2>
+      <p class="section-sub">Four baseline classifiers combined into one Soft Voting Ensemble.</p>
+    </div>
+
+    <div class="model-cards">
+      <div class="model-card">
+        <h4 class="model-card-title">Logistic Regression</h4>
+        <p class="model-card-desc">A linear classifier that estimates the log-odds of high risk using a sigmoid
+          function. Provides well-calibrated probability output.</p>
+      </div>
+      <div class="model-card">
+        <h4 class="model-card-title">Decision Tree</h4>
+        <p class="model-card-desc">Builds a flowchart-like tree by splitting on features that reduce impurity. Easily
+          interpretable but can overfit on deep trees.</p>
+      </div>
+      <div class="model-card">
+        <h4 class="model-card-title">Random Forest</h4>
+        <p class="model-card-desc">An ensemble of 100 decision trees trained on bootstrap samples. More stable than a
+          single tree and provides feature importance rankings.</p>
+      </div>
+      <div class="model-card">
+        <h4 class="model-card-title">Support Vector Machine</h4>
+        <p class="model-card-desc">Finds a maximum-margin hyperplane in high-dimensional space using an RBF kernel.
+          Probabilities estimated via Platt scaling.</p>
+      </div>
+    </div>
+
+    <div class="ensemble-block">
+      <h4 class="ensemble-title">Soft Voting Ensemble</h4>
+      <p class="ensemble-desc">
+        The Ensemble takes the average of predicted class probabilities from all four models and classifies based on
+        which class receives the higher combined probability. This often produces a more consistent result than any
+        single model alone.
+      </p>
+    </div>
+  </section>
+
+  <!-- Input Parameters -->
+  <section class="section-block">
+    <div class="section-header">
+      <h2 class="section-title">Input Parameters</h2>
+      <p class="section-sub">The 11 health measurements used for risk classification.</p>
+    </div>
+
+    <div class="params-grid">
+      <div class="param-group">
+        <h5 class="param-group-title">Demographics</h5>
+        <ul class="param-list">
+          <li>Age</li>
+          <li>Gender</li>
+        </ul>
+      </div>
+      <div class="param-group">
+        <h5 class="param-group-title">Vital Signs</h5>
+        <ul class="param-list">
+          <li>Systolic Blood Pressure (Vital)</li>
+          <li>Resting Heart Rate</li>
+        </ul>
+      </div>
+      <div class="param-group">
+        <h5 class="param-group-title">Lab Biomarkers &amp; BMI</h5>
+        <ul class="param-list">
+          <li>Fasting Glucose (Lab Test)</li>
+          <li>Total Cholesterol</li>
+          <li>Body Mass Index (BMI)</li>
+        </ul>
+      </div>
+      <div class="param-group">
+        <h5 class="param-group-title">Lifestyle &amp; History</h5>
+        <ul class="param-list">
+          <li>Smoking Status</li>
+          <li>Physical Activity Level</li>
+          <li>Family History</li>
+          <li>Prior Heart Disease</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</div>
+{% endblock %}

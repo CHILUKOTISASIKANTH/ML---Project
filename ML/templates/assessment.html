@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}Risk Assessment | Smart Disease Risk Prediction System{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 960px;">
+
+  <div class="page-header">
+    <h1 class="page-title">Risk Assessment</h1>
+    <p class="page-sub">
+      Enter the available patient information below to generate a machine learning based risk classification.
+    </p>
+  </div>
+
+  <!-- Demo Presets -->
+  <div class="presets-bar">
+    <span class="presets-label">Sample data:</span>
+    <div class="presets-buttons">
+      <button type="button" id="btn-preset-low" class="btn btn-sm btn-outline-green">Load Low-Risk Example</button>
+      <button type="button" id="btn-preset-high" class="btn btn-sm btn-outline-red">Load Higher-Risk Example</button>
+      <button type="button" id="btn-preset-clear" class="btn btn-sm btn-ghost">Reset Form</button>
+    </div>
+  </div>
+
+  {% if not models_ready %}
+  <div class="alert alert-warning">
+    Trained models were not found. Please run <code>python src/train_models.py</code> before submitting the form.
+  </div>
+  {% endif %}
+
+  <form action="{{ url_for('predict') }}" method="POST" id="assessment-form" novalidate>
+
+    <!-- Section 1: Patient Demographics -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <h2 class="form-section-title">1. Patient Demographics</h2>
+      </div>
+      <div class="form-grid form-grid-2">
+
+        <div class="form-group">
+          <label for="age" class="form-label">
+            Age <span class="form-unit">years</span>
+          </label>
+          <input type="number" class="form-control" id="age" name="age" min="1" max="120" placeholder="e.g. 45" required
+            value="{{ form_data.get('age', '') }}">
+          <div class="form-hint">Range: 1 – 120</div>
+        </div>
+
+        <div class="form-group">
+          <label for="gender" class="form-label">Gender</label>
+          <select class="form-control" id="gender" name="gender" required>
+            <option value="" disabled {% if not form_data.get('gender') %}selected{% endif %}>Select</option>
+            <option value="Male" {% if form_data.get('gender')=='Male' %}selected{% endif %}>Male</option>
+            <option value="Female" {% if form_data.get('gender')=='Female' %}selected{% endif %}>Female</option>
+            <option value="Other" {% if form_data.get('gender')=='Other' %}selected{% endif %}>Other</option>
+          </select>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Section 2: Vital Signs -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <h2 class="form-section-title">2. Vital Signs</h2>
+      </div>
+      <div class="form-grid form-grid-2">
+
+        <div class="form-group">
+          <label for="blood_pressure" class="form-label">
+            Systolic Blood Pressure (Current Vital) <span class="form-unit">mmHg</span>
+          </label>
+          <input type="number" step="1" class="form-control" id="blood_pressure" name="blood_pressure" min="50"
+            max="260" placeholder="e.g. 122" required value="{{ form_data.get('blood_pressure', '') }}">
+          <div class="form-hint">Physical cuff reading: Normal &lt;120 | Elevated 120–129 | High ≥130 mmHg</div>
+        </div>
+
+        <div class="form-group">
+          <label for="heart_rate" class="form-label">
+            Resting Heart Rate <span class="form-unit">bpm</span>
+          </label>
+          <input type="number" class="form-control" id="heart_rate" name="heart_rate" min="30" max="220"
+            placeholder="e.g. 72" required value="{{ form_data.get('heart_rate', '') }}">
+          <div class="form-hint">Typical resting range: 60 – 100 bpm</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Section 3: Laboratory Biomarkers & BMI -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <h2 class="form-section-title">3. Laboratory Biomarkers &amp; BMI</h2>
+        <button type="button" id="bmi-toggle" class="btn btn-xs btn-ghost" style="margin-left: auto;">
+          Calculate BMI
+        </button>
+      </div>
+
+      <!-- BMI Calculator (collapsible) -->
+      <div class="bmi-calc" id="bmi-calc-panel" style="display:none;">
+        <div class="bmi-calc-inner">
+          <div class="form-group" style="flex:1;">
+            <label for="calc-height" class="form-label">Height <span class="form-unit">cm</span></label>
+            <input type="number" id="calc-height" class="form-control" placeholder="e.g. 170" min="50" max="250">
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label for="calc-weight" class="form-label">Weight <span class="form-unit">kg</span></label>
+            <input type="number" id="calc-weight" class="form-control" placeholder="e.g. 70" min="10" max="300">
+          </div>
+          <div style="display:flex; align-items:flex-end; padding-bottom:0.1rem;">
+            <button type="button" id="btn-calc-bmi" class="btn btn-sm btn-primary">Insert BMI</button>
+          </div>
+        </div>
+        <p class="form-hint" style="margin-top:0.25rem;">Height and weight are only used to calculate BMI. They are not
+          sent to the model.</p>
+      </div>
+
+      <div class="form-grid form-grid-3">
+
+        <div class="form-group">
+          <label for="glucose" class="form-label">
+            Fasting Glucose (Current Lab Test) <span class="form-unit">mg/dL</span>
+          </label>
+          <input type="number" step="0.1" class="form-control" id="glucose" name="glucose" min="40" max="450"
+            placeholder="e.g. 96" required value="{{ form_data.get('glucose', '') }}">
+          <div class="form-hint">Lab blood sugar test: Normal &lt;100 | Elevated 100–125 | High ≥126 mg/dL</div>
+        </div>
+
+        <div class="form-group">
+          <label for="cholesterol" class="form-label">
+            Total Cholesterol <span class="form-unit">mg/dL</span>
+          </label>
+          <input type="number" step="0.1" class="form-control" id="cholesterol" name="cholesterol" min="80" max="500"
+            placeholder="e.g. 188" required value="{{ form_data.get('cholesterol', '') }}">
+          <div class="form-hint">Desirable: &lt;200 | Borderline: 200–239 | High: ≥240</div>
+        </div>
+
+        <div class="form-group">
+          <label for="bmi" class="form-label">
+            Body Mass Index (BMI) <span class="form-unit">kg/m²</span>
+          </label>
+          <input type="number" step="0.1" class="form-control" id="bmi" name="bmi" min="10" max="75"
+            placeholder="e.g. 23.4" required value="{{ form_data.get('bmi', '') }}">
+          <div class="form-hint">Normal: 18.5–24.9 | Overweight: 25–29.9 | Obese: ≥30</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Section 4: Lifestyle & Medical History -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <h2 class="form-section-title">4. Lifestyle &amp; Medical History</h2>
+      </div>
+      <div class="form-grid form-grid-2">
+
+        <div class="form-group">
+          <label for="smoking" class="form-label">Smoking Status</label>
+          <select class="form-control" id="smoking" name="smoking" required>
+            <option value="" disabled {% if not form_data.get('smoking') %}selected{% endif %}>Select</option>
+            <option value="Never" {% if form_data.get('smoking')=='Never' %}selected{% endif %}>Never</option>
+            <option value="Former" {% if form_data.get('smoking')=='Former' %}selected{% endif %}>Former</option>
+            <option value="Current" {% if form_data.get('smoking')=='Current' %}selected{% endif %}>Current</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="physical_activity" class="form-label">Physical Activity Level</label>
+          <select class="form-control" id="physical_activity" name="physical_activity" required>
+            <option value="" disabled {% if not form_data.get('physical_activity') %}selected{% endif %}>Select</option>
+            <option value="Low" {% if form_data.get('physical_activity')=='Low' %}selected{% endif %}>Low</option>
+            <option value="Moderate" {% if form_data.get('physical_activity')=='Moderate' %}selected{% endif %}>Moderate
+            </option>
+            <option value="High" {% if form_data.get('physical_activity')=='High' %}selected{% endif %}>High</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="family_history" class="form-label">Family History of Cardiovascular / Metabolic Disease</label>
+          <select class="form-control" id="family_history" name="family_history" required>
+            <option value="" disabled {% if not form_data.get('family_history') %}selected{% endif %}>Select</option>
+            <option value="No" {% if form_data.get('family_history')=='No' %}selected{% endif %}>No</option>
+            <option value="Yes" {% if form_data.get('family_history')=='Yes' %}selected{% endif %}>Yes</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="heart_disease" class="form-label">Prior Heart Disease</label>
+          <select class="form-control" id="heart_disease" name="heart_disease" required>
+            <option value="" disabled {% if not form_data.get('heart_disease') %}selected{% endif %}>Select</option>
+            <option value="No" {% if form_data.get('heart_disease')=='No' %}selected{% endif %}>No</option>
+            <option value="Yes" {% if form_data.get('heart_disease')=='Yes' %}selected{% endif %}>Yes</option>
+          </select>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="form-submit-row">
+      <button type="submit" id="submit-btn" class="btn btn-primary btn-lg" {% if not models_ready %}disabled{% endif %}>
+        Generate Risk Prediction
+      </button>
+    </div>
+
+  </form>
+
+</div>
+{% endblock %}

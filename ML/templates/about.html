@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block title %}About | Smart Disease Risk Prediction System{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 900px;">
+
+  <div class="page-header">
+    <h1 class="page-title">About the Project</h1>
+    <p class="page-sub">An overview of the system design, data, models, and limitations.</p>
+  </div>
+
+  <!-- Project Overview -->
+  <div class="card mb-2">
+    <h2 class="about-heading">Project Overview</h2>
+    <p>
+      The Smart Disease Risk Prediction System is a machine learning classification project
+      built with Python, Flask, and scikit-learn. It takes 11 patient health measurements
+      as input and returns a binary classification — Low Risk or High Risk — based on patterns
+      learned from a synthetic training dataset.
+    </p>
+    <p style="margin-top:0.75rem;">
+      The project demonstrates a complete end-to-end machine learning pipeline: data generation,
+      preprocessing, model training, evaluation, and deployment as a web application.
+    </p>
+  </div>
+
+  <!-- Input Parameters -->
+  <div class="card mb-2">
+    <h2 class="about-heading">Input Parameters</h2>
+    <p>The system uses exactly 11 input features:</p>
+    <div class="table-responsive" style="margin-top:1rem;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Feature</th>
+            <th>Type</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td><code>age</code></td>
+            <td>Numerical</td>
+            <td>Patient age in years</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td><code>gender</code></td>
+            <td>Categorical</td>
+            <td>Male, Female, Other</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td><code>blood_pressure</code></td>
+            <td>Numerical</td>
+            <td>Current systolic blood pressure reading (mmHg vital sign)</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td><code>heart_rate</code></td>
+            <td>Numerical</td>
+            <td>Resting heart rate (bpm)</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td><code>glucose</code></td>
+            <td>Numerical</td>
+            <td>Current fasting blood glucose level (mg/dL laboratory biomarker)</td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td><code>cholesterol</code></td>
+            <td>Numerical</td>
+            <td>Total cholesterol (mg/dL)</td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td><code>bmi</code></td>
+            <td>Numerical</td>
+            <td>Body Mass Index (kg/m²)</td>
+          </tr>
+          <tr>
+            <td>8</td>
+            <td><code>smoking</code></td>
+            <td>Categorical</td>
+            <td>Never, Former, Current</td>
+          </tr>
+          <tr>
+            <td>9</td>
+            <td><code>physical_activity</code></td>
+            <td>Categorical</td>
+            <td>Low, Moderate, High</td>
+          </tr>
+          <tr>
+            <td>10</td>
+            <td><code>family_history</code></td>
+            <td>Categorical</td>
+            <td>No, Yes</td>
+          </tr>
+          <tr>
+            <td>11</td>
+            <td><code>heart_disease</code></td>
+            <td>Categorical</td>
+            <td>Prior heart disease: No, Yes</td>
+          </tr>
+          <tr style="background:#f1f5f9;">
+            <td>—</td>
+            <td><code>target</code></td>
+            <td>Binary Target</td>
+            <td>0 = Low Risk, 1 = High Risk</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Machine Learning Approach -->
+  <div class="card mb-2">
+    <h2 class="about-heading">Machine Learning Approach</h2>
+
+    <h4 class="about-subheading">Logistic Regression</h4>
+    <p>A linear model that estimates the probability of High Risk using the logistic sigmoid function. It produces
+      well-calibrated probability outputs and is a useful baseline for binary classification.</p>
+
+    <h4 class="about-subheading" style="margin-top:1rem;">Decision Tree</h4>
+    <p>A non-parametric model that recursively partitions the feature space based on Gini impurity. Tree depth is capped
+      at 5 to limit overfitting. The resulting structure can be interpreted as a decision flowchart.</p>
+
+    <h4 class="about-subheading" style="margin-top:1rem;">Random Forest</h4>
+    <p>An ensemble of 100 independent decision trees, each trained on a random bootstrap sample of the data. Random
+      feature selection at each split reduces correlation between trees. Random Forest also produces feature importance
+      rankings (Gini importance).</p>
+
+    <h4 class="about-subheading" style="margin-top:1rem;">Support Vector Machine (SVM)</h4>
+    <p>Finds an optimal separating hyperplane with maximum margin in a transformed feature space using an RBF kernel.
+      Probabilities are estimated via Platt scaling.</p>
+
+    <h4 class="about-subheading" style="margin-top:1rem;">Soft Voting Ensemble</h4>
+    <p>
+      Combines the four individual models by averaging their predicted class probabilities. The final label is the class
+      with the higher average probability. This approach tends to smooth out individual model errors, though it does not
+      guarantee better performance on every dataset.
+    </p>
+  </div>
+
+  <!-- Data Processing -->
+  <div class="card mb-2">
+    <h2 class="about-heading">Data Processing</h2>
+    <p>The preprocessing pipeline is built with scikit-learn:</p>
+    <ul class="about-list">
+      <li><strong>Split first:</strong> Data is split into 80% training and 20% test sets before any transformation is
+        applied, to prevent data leakage.</li>
+      <li><strong>Numerical columns</strong> (<code>age, blood_pressure, heart_rate, glucose, cholesterol, bmi</code>):
+        Missing values are filled with the training median; then Standard Scaled (z-score normalisation).</li>
+      <li><strong>Categorical columns</strong>
+        (<code>gender, smoking, physical_activity, family_history, heart_disease</code>): Missing values are filled with
+        the most frequent category; then One-Hot Encoded.</li>
+      <li><strong>No leakage:</strong> Scaler and encoder statistics are computed only on training data and applied to
+        the test set.</li>
+    </ul>
+  </div>
+
+  <!-- Dataset -->
+  <div class="card mb-2">
+    <h2 class="about-heading">Dataset</h2>
+    <p>
+      The dataset is synthetically generated (1,500 records, <code>random_state=42</code>). Patient values are drawn
+      from realistic statistical distributions, and the binary target is derived from a weighted risk score that
+      accounts for combinations of age, blood pressure, glucose, BMI, smoking, physical activity, family history, and
+      prior heart disease.
+    </p>
+    <p style="margin-top:0.75rem;">
+      The dataset is not derived from real patient records and should not be used to draw clinical conclusions.
+    </p>
+  </div>
+
+  <!-- Model Evaluation -->
+  <div class="card mb-2">
+    <h2 class="about-heading">Model Evaluation</h2>
+    <p>All metrics are computed on the held-out 20% test set (approximately 300 samples) that was not used during
+      training:</p>
+    <ul class="about-list">
+      <li><strong>Accuracy</strong> — proportion of correctly classified records.</li>
+      <li><strong>Precision</strong> — of all High Risk predictions, how many were correct.</li>
+      <li><strong>Recall</strong> — of all actual High Risk records, how many were correctly found.</li>
+      <li><strong>F1 Score</strong> — harmonic mean of precision and recall.</li>
+      <li><strong>ROC-AUC</strong> — area under the ROC curve, measuring ranking ability.</li>
+    </ul>
+    <p style="margin-top:0.75rem;">All metrics are computed programmatically; no values have been manually specified.
+    </p>
+  </div>
+
+  <!-- Limitations -->
+  <div class="card mb-2">
+    <h2 class="about-heading">Limitations</h2>
+    <ul class="about-list">
+      <li>The training data is synthetic. Real-world patterns may differ from what was learned here.</li>
+      <li>Only 11 features are used. Many other factors that influence cardiovascular risk are not captured.</li>
+      <li>The output is a classification result, not a clinical assessment. It should not be used to make health
+        decisions.</li>
+      <li>Model performance depends on how closely new inputs resemble the training distribution.</li>
+    </ul>
+  </div>
+
+  <!-- Project Structure -->
+  <div class="card mb-2">
+    <h2 class="about-heading">Technology Stack</h2>
+    <ul class="about-list">
+      <li><strong>Backend:</strong> Python 3, Flask</li>
+      <li><strong>Machine Learning:</strong> scikit-learn (Logistic Regression, Decision Tree, Random Forest, SVM,
+        VotingClassifier)</li>
+      <li><strong>Data:</strong> pandas, NumPy</li>
+      <li><strong>Visualisation:</strong> matplotlib, seaborn</li>
+      <li><strong>Persistence:</strong> joblib</li>
+      <li><strong>Frontend:</strong> HTML, CSS, JavaScript (no frameworks)</li>
+    </ul>
+  </div>
+
+</div>
+{% endblock %}
